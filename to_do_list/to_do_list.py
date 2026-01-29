@@ -5,16 +5,20 @@ from PyQt5.QtCore import Qt, QPropertyAnimation, QPointF, QTimer, QDateTime, QDa
 from PyQt5.QtGui import QFont, QLinearGradient, QPainter, QBrush, QPen, QColor, QPixmap, QDesktopServices
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from datetime import datetime
+import json
 
-# Dynamically create to-dos.
-# Create add and remove to-do buttons.
+# In self.save_to_do_input_to_file, add inputs to a dictionary and append to a json file.
+# Sort the dictionary using the to_do_inputs index in self.to_do_inputs as the dictionary key.
+# Have each key's value be the respective input's text.
+# Change the text of each input field to their dictionary value when opening application.
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.initUI()
+        self.buttons = []
+        self.to_do_inputs = []
 
-        self.to_do_button.clicked.connect(self.change_button_properties)
+        self.initUI()
 
     def initUI(self):
         # Creating layout and setting its properties.
@@ -42,21 +46,59 @@ class MainWindow(QMainWindow):
         self.todos_area_layout = QGridLayout()
         self.todos_area_widget = QWidget()
         self.todos_area_widget.setLayout(self.todos_area_layout)
-        # self.todos_area_layout.setSpacing(0)
         self.todos_area_widget.setStyleSheet("background-color: #e6fd93")
         main_layout.addWidget(self.todos_area_widget, 1, 0, 1, 2)
 
-        # Create buttons for to-dos.
-        self.to_do_button = QPushButton("✗")
-        self.to_do_button.setStyleSheet("background-color: #fb5454")
-        self.to_do_button.setFont(QFont("Arial", 30, QFont.Medium))
-        self.todos_area_layout.addWidget(self.to_do_button, 0, 0, 1, 1)
+        # Creates a specified number of buttons and text areas
+        for x in range(0, 5):
+            button = self.create_button()
+            self.todos_area_layout.addWidget(button, x, 0, 1, 1)
 
-        # Create to-do text area.
-        self.to_do_text = QLineEdit()
-        self.to_do_text.setStyleSheet("background-color: #60ffcf")
-        self.to_do_text.setFont(QFont("Arial", 30, QFont.Medium))
-        self.todos_area_layout.addWidget(self.to_do_text, 0, 1, 1, 10)
+            to_do_input = self.create_to_do_input()
+            self.todos_area_layout.addWidget(to_do_input, x, 1, 1, 10)
+
+    def save_to_do_input_to_file(self):
+        # with open("to_do_list.txt", "r+") as file:
+        #     file_contents = file.read()
+        #     if file_contents == "":
+        #         print("empty")
+        #         file.write(json.dumps({}))
+
+        current_input = self.sender().text()
+        with open("to_do_list.txt", "r+") as file:
+            file_contents = file.read()
+            if file_contents == "":
+                print("empty")
+                file.write(json.dumps({}))
+            else:
+                file.seek(0)
+                file.write(current_input)
+
+    def connect_to_do_input_to_slot(self, to_do_input):
+        to_do_input.textChanged.connect(self.save_to_do_input_to_file)
+
+    def create_to_do_input(self):
+        to_do_input = QLineEdit()
+        to_do_input.setStyleSheet("background-color: #60ffcf")
+        to_do_input.setFont(QFont("Arial", 30, QFont.Medium))
+
+        self.to_do_inputs.append(to_do_input)
+        self.connect_to_do_input_to_slot(to_do_input)
+
+        return to_do_input
+
+    def connect_button_to_slot(self, button):
+        button.clicked.connect(self.change_button_properties)
+
+    def create_button(self):
+        button = QPushButton("✗")
+        button.setStyleSheet("background-color: #fb5454")
+        button.setFont(QFont("Arial", 28, QFont.Medium))
+
+        self.buttons.append(button)
+        self.connect_button_to_slot(button)
+
+        return button
 
     def change_button_properties(self):
         sender = self.sender()

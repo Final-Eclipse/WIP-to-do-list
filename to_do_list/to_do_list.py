@@ -57,22 +57,56 @@ class MainWindow(QMainWindow):
             to_do_input = self.create_to_do_input()
             self.todos_area_layout.addWidget(to_do_input, x, 1, 1, 10)
 
-    def save_to_do_input_to_file(self):
-        # with open("to_do_list.txt", "r+") as file:
-        #     file_contents = file.read()
-        #     if file_contents == "":
-        #         print("empty")
-        #         file.write(json.dumps({}))
+        # for x in range(0, 5):
+        #     if x == 2:
+        #         self.date_completed_label = QLabel()
+        #         self.date_completed_label.setStyleSheet("background-color: orange")
+        #         self.todos_area_layout.addWidget(self.date_completed_label, 1, 0, 1, 2)
+        #         # continue
+            
+        #     button = self.create_button()
+        #     self.todos_area_layout.addWidget(button, x, 0, 1, 1)
 
-        current_input = self.sender().text()
-        with open("to_do_list.txt", "r+") as file:
+        #     to_do_input = self.create_to_do_input()
+        #     self.todos_area_layout.addWidget(to_do_input, x, 1, 1, 10)
+
+        self.set_to_do_input_text()
+
+        self.date_completed_label = QLabel()
+        self.date_completed_label.setStyleSheet("background-color: orange")
+        self.todos_area_layout.addWidget(self.date_completed_label, 5, 0, 1, 2)
+
+        
+
+    def save_to_do_input_to_file(self):
+        with open("to_do_list.json", "r+") as file:
             file_contents = file.read()
+
             if file_contents == "":
-                print("empty")
                 file.write(json.dumps({}))
-            else:
                 file.seek(0)
-                file.write(current_input)
+                file_contents = file.read()
+           
+            data = json.loads(file_contents)
+            file.seek(0)
+
+            index_key = str(self.to_do_inputs.index(self.sender()))
+            data[index_key] = self.sender().text()
+            data = json.dumps(data)
+
+            file.write(data)
+            file.truncate()
+
+    def get_to_do_input_text(self):
+        with open("to_do_list.json", "r") as file:
+            file_contents = json.loads(file.read())
+        return file_contents
+
+    def set_to_do_input_text(self):
+        input_text = self.get_to_do_input_text()
+
+        for index, input in enumerate(self.to_do_inputs):
+            input.setText(input_text[str(index)])
 
     def connect_to_do_input_to_slot(self, to_do_input):
         to_do_input.textChanged.connect(self.save_to_do_input_to_file)
@@ -89,6 +123,11 @@ class MainWindow(QMainWindow):
 
     def connect_button_to_slot(self, button):
         button.clicked.connect(self.change_button_properties)
+        button.clicked.connect(self.set_date_completed)
+    
+    def set_date_completed(self):
+        date = QDate.currentDate().toString()
+        self.date_completed_label.setText(f"Completed on {date}")
 
     def create_button(self):
         button = QPushButton("✗")

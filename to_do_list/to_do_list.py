@@ -42,7 +42,8 @@ class MainWindow(QMainWindow):
         # Create title label.
         self.title_label = QLabel()
         self.title_label.setText("To-do List")
-        self.title_label.setStyleSheet("font-size: 20px")
+        # self.title_label.setStyleSheet("font-size: 35px")
+        self.title_label.setFont(QFont("Californian FB", 30, QFont.Medium))
         # self.title_label.setStyleSheet("background-color: grey; font-size: 20px")
         self.title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.title_label, 0, 0, 1, 2)
@@ -109,8 +110,12 @@ class MainWindow(QMainWindow):
 
     def get_to_do_input_text(self):
         with open("to_do_list.json", "r") as file:
-            file_contents = json.loads(file.read())
-        return file_contents
+            file_contents = file.read()
+
+        if file_contents == "":
+            return {}
+        else:
+            return json.loads(file_contents)
 
     def set_to_do_input_text(self):
         input_text = self.get_to_do_input_text()

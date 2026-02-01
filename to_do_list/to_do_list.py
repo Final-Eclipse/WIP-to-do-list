@@ -14,6 +14,7 @@ import json
 
 # Make button and input field more transparent when completing it.
 # Make button and input field less transparent when uncompleting it.
+# Make transparent color grey as more transparent does not stand out very much.
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -36,36 +37,33 @@ class MainWindow(QMainWindow):
         main_layout.setRowStretch(1, 10)
 
         # Set window properties.
-        # self.setStyleSheet("background-color: blue")
         self.setFixedSize(800, 800)
+        self.setWindowTitle("To-do List")
 
         # Create title label.
-        self.title_label = QLabel()
-        self.title_label.setText("To-do List")
-        # self.title_label.setStyleSheet("font-size: 35px")
-        self.title_label.setFont(QFont("Californian FB", 30, QFont.Medium))
-        # self.title_label.setStyleSheet("background-color: grey; font-size: 20px")
-        self.title_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(self.title_label, 0, 0, 1, 2)
+        title_label = QLabel()
+        title_label.setText("To-do List")
+        title_label.setFont(QFont("Californian FB", 30, QFont.Medium))
+        title_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(title_label, 0, 0, 1, 2)
 
         # Create to-do list area.
-        self.todos_area_layout = QGridLayout()
-        self.todos_area_widget = QWidget()
-        self.todos_area_widget.setLayout(self.todos_area_layout)
-        # self.todos_area_widget.setStyleSheet("background-color: #AB9C54")
-        main_layout.addWidget(self.todos_area_widget, 1, 0, 1, 2)
+        todos_area_layout = QGridLayout()
+        todos_area_widget = QWidget()
+        todos_area_widget.setLayout(todos_area_layout)
+        main_layout.addWidget(todos_area_widget, 1, 0, 1, 2)
 
         # Use multiples of two for start:stop indices.
         for x in range(0, 14):
             if x % 2 == 0:
                 button = self.create_button()
-                self.todos_area_layout.addWidget(button, x, 0, 1, 1)
+                todos_area_layout.addWidget(button, x, 0, 1, 1)
 
                 to_do_input = self.create_to_do_input()
-                self.todos_area_layout.addWidget(to_do_input, x, 1, 1, 10)
+                todos_area_layout.addWidget(to_do_input, x, 1, 1, 10)
             else:
                 date_completed_label = self.create_date_completed_label()
-                self.todos_area_layout.addWidget(date_completed_label, x, 9, 1, 2)
+                todos_area_layout.addWidget(date_completed_label, x, 9, 1, 2)
         
         self.set_to_do_input_text()
 
@@ -166,18 +164,23 @@ class MainWindow(QMainWindow):
         return button
 
     def change_button_properties(self):
-        sender = self.sender()
+        button = self.sender()
+        button_text = self.sender().text()
 
-        background_color = sender.styleSheet()
-        index = background_color.index("background-color")
-        background_color = background_color[index + 18:index+25]
+        if button_text == "✗":
+            button.setText("✓") 
+            button.setStyleSheet("background-color: rgba(180, 150, 230, 75)")
+        elif button_text == "✓":
+            button.setText("✗")
+            button.setStyleSheet("background-color: rgba(180, 150, 230, 150); color: red")
 
-        if background_color == "#60ff80":
-            sender.setStyleSheet("background-color: #fb5454")
-            sender.setText("✗")
-        elif background_color == "#fb5454":
-            sender.setStyleSheet("background-color: #60ff80")
-            sender.setText("✓")
+        self.change_to_do_input_properties(button)
+    
+    def change_to_do_input_properties(self, button):
+        if button.text() == "✓":
+            self.to_do_inputs[self.buttons.index(self.sender())].setStyleSheet("background-color: rgba(180, 150, 200, 50)")
+        elif button.text() == "✗":
+            self.to_do_inputs[self.buttons.index(self.sender())].setStyleSheet("background-color: rgba(180, 150, 200, 100)")
 
 app = QApplication([])
 window = MainWindow()

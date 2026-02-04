@@ -15,6 +15,14 @@ import json
 # Make button and input field more transparent when completing it.
 # Make button and input field less transparent when uncompleting it.
 # Make transparent color grey as more transparent does not stand out very much.
+
+# Save whether or not a to-do has been completed and save the date as well.
+
+# Disable input fields when to-do is set as completed.
+
+# When starting app, set the input fields to complete or not complete based on the "completion_status" in the json file.
+# Along with setting the "completion_status" in the json file, add a key for "date_completed".
+# This date will be loaded when the app starts.
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -63,7 +71,7 @@ class MainWindow(QMainWindow):
                 todos_area_layout.addWidget(to_do_input, x, 1, 1, 10)
             else:
                 date_completed_label = self.create_date_completed_label()
-                todos_area_layout.addWidget(date_completed_label, x, 9, 1, 2)
+                todos_area_layout.addWidget(date_completed_label, x, 5, 1, 2)
         
         self.set_to_do_input_text()
 
@@ -83,8 +91,10 @@ class MainWindow(QMainWindow):
     def create_date_completed_label(self):
         date_completed_label = QLabel()
         date_completed_label.setFont(QFont("Arial", 10, QFont.Medium))
-        date_completed_label.setAlignment(Qt.AlignTop)
+        date_completed_label.setAlignment(Qt.AlignRight)
+        date_completed_label.setFixedSize(400, 39)
         self.date_completed_labels.append(date_completed_label)
+
         return date_completed_label
 
     def save_to_do_input_to_file(self):
@@ -100,8 +110,13 @@ class MainWindow(QMainWindow):
             file.seek(0)
 
             index_key = str(self.to_do_inputs.index(self.sender()))
-            data[index_key] = self.sender().text()
-            data = json.dumps(data)
+            
+            if data.get(index_key) == None:
+                data[index_key] = {}
+            else:
+                data[index_key]["text"] = self.sender().text()
+
+            data = json.dumps(data, indent=2)
 
             file.write(data)
             file.truncate()
@@ -120,7 +135,7 @@ class MainWindow(QMainWindow):
 
         try:
             for index, input in enumerate(self.to_do_inputs):
-                input.setText(input_text[str(index)])
+                input.setText(input_text[str(index)]["text"])
         except KeyError:
             pass
 
@@ -129,8 +144,10 @@ class MainWindow(QMainWindow):
 
     def create_to_do_input(self):
         to_do_input = QLineEdit()
-        to_do_input.setStyleSheet("background-color: rgba(180, 150, 200, 100)")
+        to_do_input.setStyleSheet("background-color: rgba(255, 255, 255, 120)")
         to_do_input.setFont(QFont("Arial", 30, QFont.Medium))
+
+        to_do_input.setFixedSize(701, 51)
 
         self.to_do_inputs.append(to_do_input)
         self.connect_to_do_input_to_slot(to_do_input)
@@ -140,6 +157,38 @@ class MainWindow(QMainWindow):
     def connect_button_to_slot(self, button):
         button.clicked.connect(self.change_button_properties)
         button.clicked.connect(self.set_date_completed)
+        button.clicked.connect(self.save_completion_status_to_file)
+
+    def save_completion_status_to_file(self):
+        with open("to_do_list.json", "r+") as file:
+            file_contents = file.read()
+
+            if file_contents == "":
+                file.write(json.dumps({}))
+                file.seek(0)
+                file_contents = file.read()
+           
+            data = json.loads(file_contents)
+            file.seek(0)
+
+            index_key = str(self.buttons.index(self.sender()))
+
+            if data.get(index_key) == None:
+                data[index_key] = {}
+
+            if data[index_key].get("completion_status") == True:
+                data[index_key]["completion_status"] = False
+
+            elif data[index_key].get("completion_status") == False:
+                data[index_key]["completion_status"] = True
+                
+            else:
+                data[index_key]["completion_status"] = True
+
+            data = json.dumps(data, indent=2)
+
+            file.write(data)
+            file.truncate()
     
     def set_date_completed(self):
         date = QDate.currentDate().toString()
@@ -154,9 +203,10 @@ class MainWindow(QMainWindow):
 
     def create_button(self):
         button = QPushButton("✗")
-        button.setStyleSheet("background-color: rgba(180, 150, 230, 150)")
-        # button.setStyleSheet("background-color: #fb5454")
+        button.setStyleSheet("background-color: rgba(255, 255, 255, 120)")
         button.setFont(QFont("Arial", 28, QFont.Medium))
+
+        button.setFixedSize(69, 50)
 
         self.buttons.append(button)
         self.connect_button_to_slot(button)
@@ -169,18 +219,30 @@ class MainWindow(QMainWindow):
 
         if button_text == "✗":
             button.setText("✓") 
-            button.setStyleSheet("background-color: rgba(180, 150, 230, 75)")
+            button.setStyleSheet("background-color: rgba(255, 255, 255, 10)")
         elif button_text == "✓":
             button.setText("✗")
-            button.setStyleSheet("background-color: rgba(180, 150, 230, 150); color: red")
+            button.setStyleSheet("background-color: rgba(255, 255, 255, 120)")
 
         self.change_to_do_input_properties(button)
     
     def change_to_do_input_properties(self, button):
         if button.text() == "✓":
-            self.to_do_inputs[self.buttons.index(self.sender())].setStyleSheet("background-color: rgba(180, 150, 200, 50)")
+            self.to_do_inputs[self.buttons.index(self.sender())].setStyleSheet("background-color: rgba(255, 255, 255, 10)")
         elif button.text() == "✗":
-            self.to_do_inputs[self.buttons.index(self.sender())].setStyleSheet("background-color: rgba(180, 150, 200, 100)")
+            self.to_do_inputs[self.buttons.index(self.sender())].setStyleSheet("background-color: rgba(255, 255, 255, 120)")
+
+    # def init_button_properties(self):
+    #     file_json = self.get_to_do_input_text()
+
+        # index_key = str(self.buttons.index(self.sender()))
+
+        # for button in self.buttons:
+        #     file_json[]
+
+    # def get_completion_status(self):
+    #     with open("to_do_list.json", "r") as file:
+    #         file_contents = json.loads(file.read())
 
 app = QApplication([])
 window = MainWindow()

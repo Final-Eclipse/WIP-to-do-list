@@ -2,27 +2,10 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QSizePolicy, QV
                              QHBoxLayout, QGraphicsDropShadowEffect, QGraphicsEffect, QTextEdit,
                              QGridLayout, QPushButton, QLineEdit)
 from PyQt5.QtCore import Qt, QPropertyAnimation, QPointF, QTimer, QDateTime, QDate, pyqtSignal, QUrl, QSize
-from PyQt5.QtGui import QFont, QLinearGradient, QPainter, QBrush, QPen, QColor, QPixmap, QDesktopServices
+from PyQt5.QtGui import QFont, QLinearGradient, QPainter, QBrush, QPen, QColor, QPixmap, QDesktopServices, QIcon
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from datetime import datetime
 import json
-
-# In self.save_to_do_input_to_file, add inputs to a dictionary and append to a json file.
-# Sort the dictionary using the to_do_inputs index in self.to_do_inputs as the dictionary key.
-# Have each key's value be the respective input's text.
-# Change the text of each input field to their dictionary value when opening application.
-
-# Make button and input field more transparent when completing it.
-# Make button and input field less transparent when uncompleting it.
-# Make transparent color grey as more transparent does not stand out very much.
-
-# Save whether or not a to-do has been completed and save the date as well.
-
-# Disable input fields when to-do is set as completed.
-
-# When starting app, set the input fields to complete or not complete based on the "completion_status" in the json file.
-# Along with setting the "completion_status" in the json file, add a key for "date_completed".
-# This date will be loaded when the app starts.
 
 # Change font sizes, colors, boldness, thickness.
 
@@ -34,7 +17,7 @@ class MainWindow(QMainWindow):
         self.buttons = []
         self.to_do_inputs = []
         self.date_completed_labels = []
-
+        
         self.initUI()
         self.initJSON()
         self.init_button_and_to_do_input_properties()
@@ -54,11 +37,12 @@ class MainWindow(QMainWindow):
         # Set window properties.
         self.setFixedSize(800, 800)
         self.setWindowTitle("To-do List")
+        self.setWindowIcon(QIcon("to_do_list.ico"))
 
         # Create title label.
         title_label = QLabel()
         title_label.setText("To-do List")
-        title_label.setFont(QFont("Californian FB", 30, QFont.Medium))
+        title_label.setFont(QFont("Segoe Print", 30, QFont.Medium))
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label, 0, 0, 1, 2)
 
@@ -84,7 +68,7 @@ class MainWindow(QMainWindow):
 
     def initJSON(self) -> None:
         """Initializes the JSON file with key value pairs for every to_do_input widget."""
-        with open("to_do_list.json", "r+") as file:
+        with open("to_do_list/to_do_list.json", "r+") as file:
             file_contents = file.read()
 
             if file_contents == "":
@@ -118,7 +102,7 @@ class MainWindow(QMainWindow):
 
     def init_date_completed_label_properties(self) -> None:
         """Initializes the properties of every date_completed_label based on the value of "date_completed" within the JSON file."""
-        with open("to_do_list.json", "r") as file:
+        with open("to_do_list/to_do_list.json", "r") as file:
             file_contents = json.loads(file.read())
         
         for x in range(0, len(self.date_completed_labels)):
@@ -145,7 +129,7 @@ class MainWindow(QMainWindow):
         Returns a dictionary consisting of information about every to-do if the JSON file is not empty.
         Returns an empty dictionary otherwise.
         """
-        with open("to_do_list.json", "r") as file:
+        with open("to_do_list/to_do_list.json", "r") as file:
             file_contents = file.read()
 
         if file_contents == "":
@@ -159,7 +143,7 @@ class MainWindow(QMainWindow):
         
         :param index: An index position that determines which key in the dictionary to associate with.
         """
-        with open("to_do_list.json", "r") as file:
+        with open("to_do_list/to_do_list.json", "r") as file:
             file_contents = json.loads(file.read())
 
         return file_contents[str(index)]["completion_status"]
@@ -288,7 +272,7 @@ class MainWindow(QMainWindow):
             stylesheet = self.get_button_style_sheet(False)
             button.setStyleSheet(stylesheet)
             
-            button.setFont(QFont("Arial", 28, QFont.Medium))
+            button.setFont(QFont("Segoe Print", 28, QFont.Medium))
             button.setFixedSize(69, 50)
 
             self.buttons.append(button)
@@ -299,7 +283,7 @@ class MainWindow(QMainWindow):
     def create_to_do_input(self) -> QLineEdit:
         """Creates and returns a QLineEdit that is used for user input."""
         to_do_input = QLineEdit()
-        to_do_input.setFont(QFont("Arial", 15, QFont.Medium))
+        to_do_input.setFont(QFont("Segoe UI", 15, QFont.Medium))
 
         rgb = self.get_to_do_input_style_sheet(False)
         to_do_input.setStyleSheet(rgb)
@@ -315,7 +299,7 @@ class MainWindow(QMainWindow):
     def create_date_completed_label(self) -> QLabel:
         """Creates and returns a QLabel that is used to display the date in which a to-do is completed."""
         date_completed_label = QLabel()
-        date_completed_label.setFont(QFont("Arial", 10, QFont.Medium))
+        date_completed_label.setFont(QFont("Segoe Print", 10, QFont.Medium))
         date_completed_label.setAlignment(Qt.AlignRight)
         date_completed_label.setFixedSize(400, 39)
         self.date_completed_labels.append(date_completed_label)
@@ -344,7 +328,7 @@ class MainWindow(QMainWindow):
 
     def save_to_do_input_to_file(self) -> None:
         """Saves the text the user types to a JSON file."""
-        with open("to_do_list.json", "r+") as file:
+        with open("to_do_list/to_do_list.json", "r+") as file:
             file_contents = json.loads(file.read())
             file.seek(0)
 
@@ -361,7 +345,7 @@ class MainWindow(QMainWindow):
         Saves the completion status of a to-do to a JSON file.
         Is called whenever a button is clicked.
         """
-        with open("to_do_list.json", "r+") as file:
+        with open("to_do_list/to_do_list.json", "r+") as file:
             file_contents = json.loads(file.read())
             file.seek(0)
 
@@ -380,7 +364,7 @@ class MainWindow(QMainWindow):
         :param index: An index position that determines which date_completed_label in self.date_completed_labels to associate with.
         :param is_complete: A boolean that determines whether or not to save or delete the date completed.
         """
-        with open("to_do_list.json", "r+") as file:
+        with open("to_do_list/to_do_list.json", "r+") as file:
             file_contents = json.loads(file.read())
             file.seek(0)
             
